@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+  PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+  "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+	<properties resource="datasource.properties" />
+	<context id="Table2Object" targetRuntime="MyBatis3">
+		<jdbcConnection driverClass="${driver}" connectionURL="${url}"
+			userId="${username}" password="${password}">
+		</jdbcConnection>
+
+		<javaTypeResolver>
+			<!-- 默认false自动适配数据库数值类型，true则强制使用java.math.BigDecimal -->
+			<property name="forceBigDecimals" value="false" />
+		</javaTypeResolver>
+		<!-- model -->
+		<javaModelGenerator targetPackage="com.easyui.user.model"
+			targetProject="E:\work\workspace2015\easyui\src">
+			<!-- 数据库的表全限定名是 Catalog名称.Schema名称.表名称， enableSubPackages 默认false就创建在targetPackage下，true则会在target下创建catalog和schema -->
+			<property name="enableSubPackages" value="false" />
+			<property name="trimStrings" value="true" />
+		</javaModelGenerator>
+		
+		<!-- xml -->
+		<sqlMapGenerator targetPackage="com.easyui.user.mapping"
+			targetProject="E:\work\workspace2015\easyui\src">
+			<property name="enableSubPackages" value="false" />
+		</sqlMapGenerator>
+
+		<!-- dao -->
+		<javaClientGenerator type="XMLMAPPER"
+			targetPackage="com.easyui.user.dao" targetProject="E:\work\workspace2015\easyui\src">
+			<property name="enableSubPackages" value="false" />
+		</javaClientGenerator>
+
+		<table tableName="users" domainObjectName="User">
+			<!-- useActualColumnNames默认false，属性使用驼峰式，true保持数据库字段一致 -->
+			<property name="useActualColumnNames" value="false" />
+			<!-- <generatedKey column="id" sqlStatement="MySql" identity="true" /> 
+				<columnOverride column="DATE_FIELD" property="startDate" /> <ignoreColumn 
+				column="FRED" /> <columnOverride column="LONG_VARCHAR_FIELD" jdbcType="VARCHAR" 
+				/> -->
+		</table>
+
+	</context>
+</generatorConfiguration>

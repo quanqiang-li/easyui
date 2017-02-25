@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd          
+           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+	<!-- 读取dataSource.properties配置文件 -->
+	<context:property-placeholder location="classpath*:datasource.properties" />
+
+	<!-- 多数据源相同的信息 -->
+	<bean id="parentDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass"><!-- 指定连接数据库的驱动 -->
+			<value>${driver}</value>
+		</property>
+		<property name="idleConnectionTestPeriod"><!--每60秒检查所有连接池中的空闲连接。Default: 0 -->
+			<value>${idleConnectionTestPeriod}</value>
+		</property>
+		<property name="acquireRetryAttempts"><!--定义在从数据库获取新连接失败后重复尝试的次数。Default: 30 -->
+			<value>${acquireRetryAttempts}</value>
+		</property>
+		<property name="breakAfterAcquireFailure">
+			<!-- 获取连接失败将会引起所有等待连接池来获取连接的线程抛出异常。但是数据源仍有效保留，并在下次调用getConnection()的时候继续尝试获取连接。如果设为true，那么在尝试获取连接失败后该数据源将申明已断开并永久关闭。Default: 
+				false -->
+			<value>${breakAfterAcquireFailure}</value>
+		</property>
+		<property name="testConnectionOnCheckout">
+			<!-- 因性能消耗大请只在需要的时候使用它。如果设为true那么在每个connection提交的时候都将校验其有效性。建议使用idleConnectionTestPeriod或automaticTestTable 
+				等方法来提升连接测试的性能。Default: false -->
+			<value>${testConnectionOnCheckout}</value>
+		</property>
+		<property name="minPoolSize"><!-- 最小链接数 -->
+			<value>${minPoolSize}</value>
+		</property>
+		<property name="maxPoolSize"><!-- 最大连接数 -->
+			<value>${maxPoolSize}</value>
+		</property>
+		<property name="initialPoolSize"> <!--连接池初始化时获取的链接数，介于minPoolSize和maxPoolSize之间 -->
+			<value>${initialPoolSize}</value>
+		</property>
+		<property name="acquireIncrement"><!-- 在当前连接数耗尽的时候，一次获取的新的连接数 -->
+			<value>${acquireIncrement}</value>
+		</property>
+		<property name="maxIdleTime"><!-- 最大空闲的时间，单位是秒，无用的链接再过时后会被回收 -->
+			<value>${maxIdleTime}</value>
+		</property>
+		<property name="maxStatements">
+			<!-- JDBC的标准参数，用以控制数据源内加载的PreparedStatements数量。但由于预缓存的statements属于单个connection而不是整个连接池。所以设置这个参数需要考虑到多方面的因素 -->
+			<value>${maxStatements}</value>
+		</property>
+	</bean>
+
+	<!--  数据源配置,坑，这里不能使用${username}否则得到的是当前服务器名称而不是配置文件属性 -->
+	<bean parent="parentDataSource" id="defaultDatasource">
+		<property name="user"><!-- 指定连接数据库的用户名 -->
+			<value>${username1}</value>
+		</property>
+		<property name="password"><!-- 指定连接数据库的密码 -->
+			<value>${password1}</value>
+		</property>
+		<property name="jdbcUrl">
+			<value>${url}</value>
+		</property>
+	</bean>
+
+	<bean class="com.easyui.common.util.datasource.DynamicDataSource"
+		id="dataSource">
+		<property name="targetDataSources">
+			<map key-type="java.lang.String">
+				<entry key="default" value-ref="defaultDatasource" ></entry>
+			</map>
+		</property>
+		<property name="defaultTargetDataSource" ref="defaultDatasource">
+		</property>
+	</bean>
+
+	<!--配置数据库会话工厂  整合mybatis-->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="mapperLocations">
+			<array>
+				<value>classpath*:com/easyui/**/mapping/**/*.xml</value>
+			</array>
+		</property>
+		<property name="typeAliasesPackage" value="com.easyui" />
+		<property name="plugins">
+			<array>
+				<!-- 性能拦截器，用于输出每条 SQL 语句及其执行时间 -->
+				<bean
+					class="com.easyui.common.util.MybatisSqlInterceptor"></bean>
+			</array>
+		</property>
+	</bean>
+
+	<!-- 事务管理器配置 -->
+	<bean id="txManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+
+
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.easyui.**.dao" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+	</bean>
+
+	<!-- 通知配置 -->
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="delete*" rollback-for="Exception" />
+			<tx:method name="save*" rollback-for="Exception" />
+			<tx:method name="insert*" rollback-for="Exception" />
+			<tx:method name="update*" rollback-for="Exception" />
+			<tx:method name="select*" read-only="true" rollback-for="Exception" />
+			<tx:method name="get*" read-only="true" rollback-for="Exception" />
+			<tx:method name="*" rollback-for="Exception" />
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- 事务切面配置 -->
+	<aop:config>
+		<aop:pointcut id="serviceOperation" expression="execution(* *..service..*(..))" />
+		<aop:advisor order="2" pointcut-ref="serviceOperation"
+			advice-ref="txAdvice" />
+	</aop:config>
+
+</beans>
