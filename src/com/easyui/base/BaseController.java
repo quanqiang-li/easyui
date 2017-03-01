@@ -19,4 +19,8 @@ public class BaseController {
 	public ModelAndView easyLoader(HttpServletRequest req,HttpServletResponse res){
 		return new ModelAndView("1base/2easyLoader");
 	}
+	@RequestMapping("toolTip")
+	public ModelAndView toolTip(HttpServletRequest req,HttpServletResponse res){
+		return new ModelAndView("1base/9toolTip");
+	}
 }
