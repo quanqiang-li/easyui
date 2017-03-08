@@ -23,6 +23,20 @@
 </head>
 
 <body>
+
+<form id="ff" method="post">
+    <div>
+        <label for="name">Name:</label>
+        <input class="easyui-validatebox" type="text" name="name" data-options="required:true" />
+    </div>
+    <div>
+        <label for="email">Email:</label>
+        <input class="easyui-validatebox" type="text" name="email" data-options="validType:'email'" />
+    </div>
+    ...
+</form>
+<!-- 一定要把table放在div中，给div定位，里面的table会参考外面的div控制大小，否则会参考body而忽略上面的form位置 -->
+<div  style="width: 100%;height: 80%;">
 	<table id="dg" style="width:100%;height:auto;border:1px solid #ccc;" >
 	<thead>
             <tr>
@@ -80,6 +94,7 @@
             </tr>
         </tbody>
     </table>
+    </div>
 </body>
 <script type="text/javascript">
         (function($){
@@ -203,6 +218,7 @@
         }
         */
         $(function(){
+        	alert(11);
         	//原始的数据项，可以改为ajax
             //$('#dg').datagrid({data:getData()}).datagrid('clientPaging');
         	//修改后的数据项，post请求得到数据之后客户端分页

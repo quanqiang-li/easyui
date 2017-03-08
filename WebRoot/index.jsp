@@ -27,6 +27,7 @@
 		<li><a target="_blank" href="baseController/easyLoader">easyLoader</a></li>
 		<li><a target="_blank" href="baseController/toolTip">toolTip</a></li>
 		<li><a target="_blank" href="datagridController/table2grid">table2grid</a></li>
+		<li><a target="_blank" href="layout/layout">layout</a></li>
 	</ul>
 	
 </body>
